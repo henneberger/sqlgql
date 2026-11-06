@@ -1,0 +1,26 @@
+{
+  "name": "sqlgql-apollo-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "graphql-codegen --config codegen.yml && node ../scripts/persist.mjs",
+    "typecheck": "tsc --noEmit",
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "smoke": "tsx src/smoke.ts"
+  },
+  "dependencies": {
+    "@apollo/client": "3.13.8",
+    "graphql": "16.11.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "5.0.5",
+    "@graphql-codegen/typescript": "4.1.6",
+    "@graphql-codegen/typescript-operations": "4.6.1",
+    "@graphql-codegen/typed-document-node": "5.1.1",
+    "@types/node": "22.15.3",
+    "tsx": "4.19.4",
+    "typescript": "5.8.3",
+    "vite": "6.3.4"
+  }
+}

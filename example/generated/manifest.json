@@ -1,0 +1,575 @@
+[
+  {
+    "Path": "Query.customer.customerItems",
+    "Field": "customerItems",
+    "Type": "CustomerItems",
+    "Func": "CustomerCustomerItems",
+    "SQL": "-- @many\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (PARTITION BY customer_id ORDER BY id) AS position\n  FROM customer_items\n  WHERE customer_id = ANY($1::int[])\n    AND tenant_id = $2::text\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= $3::int\nORDER BY \"customerId\", id\n",
+    "SQLC": "-- @many\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (PARTITION BY customer_id ORDER BY id) AS position\n  FROM customer_items\n  WHERE customer_id = ANY(sqlc.arg(parent_id)::int[])\n    AND tenant_id = sqlc.arg(env_auth_tenantId)::text\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= sqlc.arg(param_limit)::int\nORDER BY \"customerId\", id\n",
+    "Source": "-- @many\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (PARTITION BY customer_id ORDER BY id) AS position\n  FROM customer_items\n  WHERE customer_id = ANY({{parent.id}}::int[])\n    AND tenant_id = {{env.auth.tenantId}}::text\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= {{param.limit}}::int\nORDER BY \"customerId\", id\n",
+    "One": false,
+    "Batch": {
+      "id": "customerId"
+    },
+    "Connection": null,
+    "Bindings": [
+      {
+        "Source": "parent",
+        "Path": "id",
+        "OID": 1007,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "env",
+        "Path": "auth.tenantId",
+        "OID": 25,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "limit",
+        "OID": 23,
+        "Type": "Int",
+        "Nullable": false
+      }
+    ],
+    "Columns": [
+      {
+        "Name": "customerId",
+        "Type": "Int"
+      },
+      {
+        "Name": "id",
+        "Type": "Int"
+      },
+      {
+        "Name": "label",
+        "Type": "String"
+      },
+      {
+        "Name": "quantity",
+        "Type": "Int"
+      }
+    ]
+  },
+  {
+    "Path": "Query.customer",
+    "Field": "customer",
+    "Type": "Customer",
+    "Func": "Customer",
+    "SQL": "-- @one\nSELECT id, name, email\nFROM customers\nWHERE id = $1::int\n  AND tenant_id = $2::text\n",
+    "SQLC": "-- @one\nSELECT id, name, email\nFROM customers\nWHERE id = sqlc.arg(param_id)::int\n  AND tenant_id = sqlc.arg(env_auth_tenantId)::text\n",
+    "Source": "-- @one\nSELECT id, name, email\nFROM customers\nWHERE id = {{param.id}}::int\n  AND tenant_id = {{env.auth.tenantId}}::text\n",
+    "One": true,
+    "Batch": null,
+    "Connection": null,
+    "Bindings": [
+      {
+        "Source": "param",
+        "Path": "id",
+        "OID": 23,
+        "Type": "Int",
+        "Nullable": false
+      },
+      {
+        "Source": "env",
+        "Path": "auth.tenantId",
+        "OID": 25,
+        "Type": "",
+        "Nullable": false
+      }
+    ],
+    "Columns": [
+      {
+        "Name": "id",
+        "Type": "Int"
+      },
+      {
+        "Name": "name",
+        "Type": "String"
+      },
+      {
+        "Name": "email",
+        "Type": "String"
+      }
+    ]
+  },
+  {
+    "Path": "Query.customerPage.pageItems",
+    "Field": "pageItems",
+    "Type": "PageItems",
+    "Func": "CustomerPagePageItems",
+    "SQL": "-- @many\n-- @connection id\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (\n           PARTITION BY customer_id\n           ORDER BY CASE WHEN $1::boolean THEN id END DESC,\n                    CASE WHEN NOT $1::boolean THEN id END ASC\n         ) AS position\n  FROM customer_items\n  WHERE customer_id = ANY($2::int[])\n    AND tenant_id = $3::text\n    AND ($4::int IS NULL OR id \u003e $4::int)\n    AND ($5::int IS NULL OR id \u003c $5::int)\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= $6::int\nORDER BY \"customerId\", position\n",
+    "SQLC": "-- @many\n-- @connection id\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (\n           PARTITION BY customer_id\n           ORDER BY CASE WHEN sqlc.arg(page_backward)::boolean THEN id END DESC,\n                    CASE WHEN NOT sqlc.arg(page_backward)::boolean THEN id END ASC\n         ) AS position\n  FROM customer_items\n  WHERE customer_id = ANY(sqlc.arg(parent_id)::int[])\n    AND tenant_id = sqlc.arg(env_auth_tenantId)::text\n    AND (sqlc.narg(page_after_id)::int IS NULL OR id \u003e sqlc.narg(page_after_id)::int)\n    AND (sqlc.narg(page_before_id)::int IS NULL OR id \u003c sqlc.narg(page_before_id)::int)\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= sqlc.arg(page_limit)::int\nORDER BY \"customerId\", position\n",
+    "Source": "-- @many\n-- @connection id\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (\n           PARTITION BY customer_id\n           ORDER BY CASE WHEN {{page.backward}}::boolean THEN id END DESC,\n                    CASE WHEN NOT {{page.backward}}::boolean THEN id END ASC\n         ) AS position\n  FROM customer_items\n  WHERE customer_id = ANY({{parent.id}}::int[])\n    AND tenant_id = {{env.auth.tenantId}}::text\n    AND ({{page.after.id}}::int IS NULL OR id \u003e {{page.after.id}}::int)\n    AND ({{page.before.id}}::int IS NULL OR id \u003c {{page.before.id}}::int)\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= {{page.limit}}::int\nORDER BY \"customerId\", position\n",
+    "One": false,
+    "Batch": {
+      "id": "customerId"
+    },
+    "Connection": [
+      "id"
+    ],
+    "Bindings": [
+      {
+        "Source": "page",
+        "Path": "backward",
+        "OID": 16,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "parent",
+        "Path": "id",
+        "OID": 1007,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "env",
+        "Path": "auth.tenantId",
+        "OID": 25,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "page",
+        "Path": "after.id",
+        "OID": 23,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "page",
+        "Path": "before.id",
+        "OID": 23,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "page",
+        "Path": "limit",
+        "OID": 23,
+        "Type": "",
+        "Nullable": false
+      }
+    ],
+    "Columns": [
+      {
+        "Name": "customerId",
+        "Type": "Int"
+      },
+      {
+        "Name": "id",
+        "Type": "Int"
+      },
+      {
+        "Name": "label",
+        "Type": "String"
+      },
+      {
+        "Name": "quantity",
+        "Type": "Int"
+      }
+    ]
+  },
+  {
+    "Path": "Query.customerPage",
+    "Field": "customerPage",
+    "Type": "CustomerPage",
+    "Func": "CustomerPage",
+    "SQL": "-- @many\n-- @connection id\nSELECT id, name, email\nFROM customers\nWHERE tenant_id = $1::text\n  AND ($2::int IS NULL OR id \u003e $2::int)\n  AND ($3::int IS NULL OR id \u003c $3::int)\nORDER BY CASE WHEN $4::boolean THEN id END DESC,\n         CASE WHEN NOT $4::boolean THEN id END ASC\nLIMIT $5::int\n",
+    "SQLC": "-- @many\n-- @connection id\nSELECT id, name, email\nFROM customers\nWHERE tenant_id = sqlc.arg(env_auth_tenantId)::text\n  AND (sqlc.narg(page_after_id)::int IS NULL OR id \u003e sqlc.narg(page_after_id)::int)\n  AND (sqlc.narg(page_before_id)::int IS NULL OR id \u003c sqlc.narg(page_before_id)::int)\nORDER BY CASE WHEN sqlc.arg(page_backward)::boolean THEN id END DESC,\n         CASE WHEN NOT sqlc.arg(page_backward)::boolean THEN id END ASC\nLIMIT sqlc.arg(page_limit)::int\n",
+    "Source": "-- @many\n-- @connection id\nSELECT id, name, email\nFROM customers\nWHERE tenant_id = {{env.auth.tenantId}}::text\n  AND ({{page.after.id}}::int IS NULL OR id \u003e {{page.after.id}}::int)\n  AND ({{page.before.id}}::int IS NULL OR id \u003c {{page.before.id}}::int)\nORDER BY CASE WHEN {{page.backward}}::boolean THEN id END DESC,\n         CASE WHEN NOT {{page.backward}}::boolean THEN id END ASC\nLIMIT {{page.limit}}::int\n",
+    "One": false,
+    "Batch": null,
+    "Connection": [
+      "id"
+    ],
+    "Bindings": [
+      {
+        "Source": "env",
+        "Path": "auth.tenantId",
+        "OID": 25,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "page",
+        "Path": "after.id",
+        "OID": 23,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "page",
+        "Path": "before.id",
+        "OID": 23,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "page",
+        "Path": "backward",
+        "OID": 16,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "page",
+        "Path": "limit",
+        "OID": 23,
+        "Type": "",
+        "Nullable": false
+      }
+    ],
+    "Columns": [
+      {
+        "Name": "id",
+        "Type": "Int"
+      },
+      {
+        "Name": "name",
+        "Type": "String"
+      },
+      {
+        "Name": "email",
+        "Type": "String"
+      }
+    ]
+  },
+  {
+    "Path": "Query.customers.items",
+    "Field": "items",
+    "Type": "Items",
+    "Func": "CustomersItems",
+    "SQL": "-- @many\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (PARTITION BY customer_id ORDER BY id) AS position\n  FROM customer_items\n  WHERE customer_id = ANY($1::int[])\n    AND tenant_id = $2::text\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= $3::int\nORDER BY \"customerId\", id\n",
+    "SQLC": "-- @many\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (PARTITION BY customer_id ORDER BY id) AS position\n  FROM customer_items\n  WHERE customer_id = ANY(sqlc.arg(parent_id)::int[])\n    AND tenant_id = sqlc.arg(env_auth_tenantId)::text\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= sqlc.arg(param_limit)::int\nORDER BY \"customerId\", id\n",
+    "Source": "-- @many\n-- @batch parent.id=customerId\nWITH ranked AS (\n  SELECT customer_id AS \"customerId\", id, label, quantity,\n         row_number() OVER (PARTITION BY customer_id ORDER BY id) AS position\n  FROM customer_items\n  WHERE customer_id = ANY({{parent.id}}::int[])\n    AND tenant_id = {{env.auth.tenantId}}::text\n)\nSELECT \"customerId\", id, label, quantity\nFROM ranked\nWHERE position \u003c= {{param.limit}}::int\nORDER BY \"customerId\", id\n",
+    "One": false,
+    "Batch": {
+      "id": "customerId"
+    },
+    "Connection": null,
+    "Bindings": [
+      {
+        "Source": "parent",
+        "Path": "id",
+        "OID": 1007,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "env",
+        "Path": "auth.tenantId",
+        "OID": 25,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "limit",
+        "OID": 23,
+        "Type": "Int",
+        "Nullable": false
+      }
+    ],
+    "Columns": [
+      {
+        "Name": "customerId",
+        "Type": "Int"
+      },
+      {
+        "Name": "id",
+        "Type": "Int"
+      },
+      {
+        "Name": "label",
+        "Type": "String"
+      },
+      {
+        "Name": "quantity",
+        "Type": "Int"
+      }
+    ]
+  },
+  {
+    "Path": "Query.customers",
+    "Field": "customers",
+    "Type": "Customers",
+    "Func": "Customers",
+    "SQL": "-- @many\nSELECT id, name, email\nFROM customers\nWHERE tenant_id = $1::text\nORDER BY id\nLIMIT $2::int\n",
+    "SQLC": "-- @many\nSELECT id, name, email\nFROM customers\nWHERE tenant_id = sqlc.arg(env_auth_tenantId)::text\nORDER BY id\nLIMIT sqlc.arg(param_limit)::int\n",
+    "Source": "-- @many\nSELECT id, name, email\nFROM customers\nWHERE tenant_id = {{env.auth.tenantId}}::text\nORDER BY id\nLIMIT {{param.limit}}::int\n",
+    "One": false,
+    "Batch": null,
+    "Connection": null,
+    "Bindings": [
+      {
+        "Source": "env",
+        "Path": "auth.tenantId",
+        "OID": 25,
+        "Type": "",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "limit",
+        "OID": 23,
+        "Type": "Int",
+        "Nullable": false
+      }
+    ],
+    "Columns": [
+      {
+        "Name": "id",
+        "Type": "Int"
+      },
+      {
+        "Name": "name",
+        "Type": "String"
+      },
+      {
+        "Name": "email",
+        "Type": "String"
+      }
+    ]
+  },
+  {
+    "Path": "Query.numericDemo",
+    "Field": "numericDemo",
+    "Type": "NumericDemo",
+    "Func": "NumericDemo",
+    "SQL": "-- @one\nSELECT $1::bigint AS big,\n       $2::real AS real,\n       $3::double precision AS double,\n       $4::bigint[] AS bigs,\n       $5::real[] AS reals,\n       $6::double precision[] AS doubles,\n       NULL::bigint AS \"optionalBig\",\n       NULL::real AS \"optionalReal\",\n       NULL::double precision AS \"optionalDouble\",\n       CASE $7::text\n         WHEN 'nan' THEN 'NaN'::double precision\n         WHEN 'infinity' THEN 'Infinity'::double precision\n         WHEN '-infinity' THEN '-Infinity'::double precision\n         ELSE 0::double precision\n       END AS special\n",
+    "SQLC": "-- @one\nSELECT sqlc.arg(param_big)::bigint AS big,\n       sqlc.arg(param_real)::real AS real,\n       sqlc.arg(param_double)::double precision AS double,\n       sqlc.arg(param_bigs)::bigint[] AS bigs,\n       sqlc.arg(param_reals)::real[] AS reals,\n       sqlc.arg(param_doubles)::double precision[] AS doubles,\n       NULL::bigint AS \"optionalBig\",\n       NULL::real AS \"optionalReal\",\n       NULL::double precision AS \"optionalDouble\",\n       CASE sqlc.arg(param_special)::text\n         WHEN 'nan' THEN 'NaN'::double precision\n         WHEN 'infinity' THEN 'Infinity'::double precision\n         WHEN '-infinity' THEN '-Infinity'::double precision\n         ELSE 0::double precision\n       END AS special\n",
+    "Source": "-- @one\nSELECT {{param.big}}::bigint AS big,\n       {{param.real}}::real AS real,\n       {{param.double}}::double precision AS double,\n       {{param.bigs}}::bigint[] AS bigs,\n       {{param.reals}}::real[] AS reals,\n       {{param.doubles}}::double precision[] AS doubles,\n       NULL::bigint AS \"optionalBig\",\n       NULL::real AS \"optionalReal\",\n       NULL::double precision AS \"optionalDouble\",\n       CASE {{param.special}}::text\n         WHEN 'nan' THEN 'NaN'::double precision\n         WHEN 'infinity' THEN 'Infinity'::double precision\n         WHEN '-infinity' THEN '-Infinity'::double precision\n         ELSE 0::double precision\n       END AS special\n",
+    "One": true,
+    "Batch": null,
+    "Connection": null,
+    "Bindings": [
+      {
+        "Source": "param",
+        "Path": "big",
+        "OID": 20,
+        "Type": "BigInt",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "real",
+        "OID": 700,
+        "Type": "Float",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "double",
+        "OID": 701,
+        "Type": "Float",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "bigs",
+        "OID": 1016,
+        "Type": "[BigInt]",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "reals",
+        "OID": 1021,
+        "Type": "[Float]",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "doubles",
+        "OID": 1022,
+        "Type": "[Float]",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "special",
+        "OID": 25,
+        "Type": "String",
+        "Nullable": false
+      }
+    ],
+    "Columns": [
+      {
+        "Name": "big",
+        "Type": "BigInt"
+      },
+      {
+        "Name": "real",
+        "Type": "Float"
+      },
+      {
+        "Name": "double",
+        "Type": "Float"
+      },
+      {
+        "Name": "bigs",
+        "Type": "[BigInt]"
+      },
+      {
+        "Name": "reals",
+        "Type": "[Float]"
+      },
+      {
+        "Name": "doubles",
+        "Type": "[Float]"
+      },
+      {
+        "Name": "optionalBig",
+        "Type": "BigInt"
+      },
+      {
+        "Name": "optionalReal",
+        "Type": "Float"
+      },
+      {
+        "Name": "optionalDouble",
+        "Type": "Float"
+      },
+      {
+        "Name": "special",
+        "Type": "Float"
+      }
+    ]
+  },
+  {
+    "Path": "Query.typeDemo",
+    "Field": "typeDemo",
+    "Type": "TypeDemo",
+    "Func": "TypeDemo",
+    "SQL": "-- @one\nSELECT $1::uuid AS id,\n       $2::jsonb AS document,\n       $3::json AS raw,\n       $4::uuid[] AS ids,\n       $5::text[] AS labels,\n       $6::int[] AS counts,\n       $7::boolean[] AS flags,\n       $8::double precision[] AS scores,\n       $9::jsonb[] AS documents,\n       NULL::uuid AS \"optionalId\",\n       NULL::jsonb AS \"optionalDocument\",\n       NULL::text[] AS \"optionalLabels\",\n       ARRAY[]::int[] AS \"emptyCounts\"\n",
+    "SQLC": "-- @one\nSELECT sqlc.arg(param_id)::uuid AS id,\n       sqlc.arg(param_document)::jsonb AS document,\n       sqlc.arg(param_raw)::json AS raw,\n       sqlc.arg(param_ids)::uuid[] AS ids,\n       sqlc.arg(param_labels)::text[] AS labels,\n       sqlc.arg(param_counts)::int[] AS counts,\n       sqlc.arg(param_flags)::boolean[] AS flags,\n       sqlc.arg(param_scores)::double precision[] AS scores,\n       sqlc.arg(param_documents)::jsonb[] AS documents,\n       NULL::uuid AS \"optionalId\",\n       NULL::jsonb AS \"optionalDocument\",\n       NULL::text[] AS \"optionalLabels\",\n       ARRAY[]::int[] AS \"emptyCounts\"\n",
+    "Source": "-- @one\nSELECT {{param.id}}::uuid AS id,\n       {{param.document}}::jsonb AS document,\n       {{param.raw}}::json AS raw,\n       {{param.ids}}::uuid[] AS ids,\n       {{param.labels}}::text[] AS labels,\n       {{param.counts}}::int[] AS counts,\n       {{param.flags}}::boolean[] AS flags,\n       {{param.scores}}::double precision[] AS scores,\n       {{param.documents}}::jsonb[] AS documents,\n       NULL::uuid AS \"optionalId\",\n       NULL::jsonb AS \"optionalDocument\",\n       NULL::text[] AS \"optionalLabels\",\n       ARRAY[]::int[] AS \"emptyCounts\"\n",
+    "One": true,
+    "Batch": null,
+    "Connection": null,
+    "Bindings": [
+      {
+        "Source": "param",
+        "Path": "id",
+        "OID": 2950,
+        "Type": "UUID",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "document",
+        "OID": 3802,
+        "Type": "JSON",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "raw",
+        "OID": 114,
+        "Type": "JSON",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "ids",
+        "OID": 2951,
+        "Type": "[UUID]",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "labels",
+        "OID": 1009,
+        "Type": "[String]",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "counts",
+        "OID": 1007,
+        "Type": "[Int]",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "flags",
+        "OID": 1000,
+        "Type": "[Boolean]",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "scores",
+        "OID": 1022,
+        "Type": "[Float]",
+        "Nullable": false
+      },
+      {
+        "Source": "param",
+        "Path": "documents",
+        "OID": 3807,
+        "Type": "[JSON]",
+        "Nullable": false
+      }
+    ],
+    "Columns": [
+      {
+        "Name": "id",
+        "Type": "UUID"
+      },
+      {
+        "Name": "document",
+        "Type": "JSON"
+      },
+      {
+        "Name": "raw",
+        "Type": "JSON"
+      },
+      {
+        "Name": "ids",
+        "Type": "[UUID]"
+      },
+      {
+        "Name": "labels",
+        "Type": "[String]"
+      },
+      {
+        "Name": "counts",
+        "Type": "[Int]"
+      },
+      {
+        "Name": "flags",
+        "Type": "[Boolean]"
+      },
+      {
+        "Name": "scores",
+        "Type": "[Float]"
+      },
+      {
+        "Name": "documents",
+        "Type": "[JSON]"
+      },
+      {
+        "Name": "optionalId",
+        "Type": "UUID"
+      },
+      {
+        "Name": "optionalDocument",
+        "Type": "JSON"
+      },
+      {
+        "Name": "optionalLabels",
+        "Type": "[String]"
+      },
+      {
+        "Name": "emptyCounts",
+        "Type": "[Int]"
+      }
+    ]
+  }
+]

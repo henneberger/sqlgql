@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demo
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - ./example/db/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d demo"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  opa:
+    image: openpolicyagent/opa:1.0.1-static
+    command: ["run", "--server", "--addr=0.0.0.0:8181", "/policy"]
+    ports: ["127.0.0.1:8181:8181"]
+    volumes:
+      - ./example/policy:/policy:ro

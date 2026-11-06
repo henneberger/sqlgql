@@ -1,0 +1,15 @@
+query NumericDemo($Query_numericDemo_big: BigInt!, $Query_numericDemo_real: Float!, $Query_numericDemo_double: Float!, $Query_numericDemo_bigs: [BigInt]!, $Query_numericDemo_reals: [Float]!, $Query_numericDemo_doubles: [Float]!, $Query_numericDemo_special: String!) {
+  numericDemo(big: $Query_numericDemo_big, real: $Query_numericDemo_real, double: $Query_numericDemo_double, bigs: $Query_numericDemo_bigs, reals: $Query_numericDemo_reals, doubles: $Query_numericDemo_doubles, special: $Query_numericDemo_special) {
+    __typename
+    big
+    real
+    double
+    bigs
+    reals
+    doubles
+    optionalBig
+    optionalReal
+    optionalDouble
+    special
+  }
+}

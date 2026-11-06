@@ -1,0 +1,15 @@
+query Customers($Query_customers_limit: Int!, $Query_customers_items_limit: Int!) {
+  customers(limit: $Query_customers_limit) {
+    __typename
+    id
+    name
+    email
+    items(limit: $Query_customers_items_limit) {
+      __typename
+      customerId
+      id
+      label
+      quantity
+    }
+  }
+}

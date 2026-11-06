@@ -1,0 +1,18 @@
+query TypeDemo($Query_typeDemo_id: UUID!, $Query_typeDemo_document: JSON!, $Query_typeDemo_raw: JSON!, $Query_typeDemo_ids: [UUID]!, $Query_typeDemo_labels: [String]!, $Query_typeDemo_counts: [Int]!, $Query_typeDemo_flags: [Boolean]!, $Query_typeDemo_scores: [Float]!, $Query_typeDemo_documents: [JSON]!) {
+  typeDemo(id: $Query_typeDemo_id, document: $Query_typeDemo_document, raw: $Query_typeDemo_raw, ids: $Query_typeDemo_ids, labels: $Query_typeDemo_labels, counts: $Query_typeDemo_counts, flags: $Query_typeDemo_flags, scores: $Query_typeDemo_scores, documents: $Query_typeDemo_documents) {
+    __typename
+    id
+    document
+    raw
+    ids
+    labels
+    counts
+    flags
+    scores
+    documents
+    optionalId
+    optionalDocument
+    optionalLabels
+    emptyCounts
+  }
+}

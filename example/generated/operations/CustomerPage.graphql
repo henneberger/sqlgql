@@ -1,0 +1,31 @@
+query CustomerPage($Query_customerPage_first: Int, $Query_customerPage_after: String, $Query_customerPage_last: Int, $Query_customerPage_before: String, $Query_customerPage_pageItems_first: Int, $Query_customerPage_pageItems_after: String, $Query_customerPage_pageItems_last: Int, $Query_customerPage_pageItems_before: String) {
+  customerPage(first: $Query_customerPage_first, after: $Query_customerPage_after, last: $Query_customerPage_last, before: $Query_customerPage_before) {
+    __typename
+    pageInfo { __typename hasNextPage hasPreviousPage startCursor endCursor }
+    edges {
+      __typename
+      cursor
+      node {
+        __typename
+        id
+        name
+        email
+        pageItems(first: $Query_customerPage_pageItems_first, after: $Query_customerPage_pageItems_after, last: $Query_customerPage_pageItems_last, before: $Query_customerPage_pageItems_before) {
+          __typename
+          pageInfo { __typename hasNextPage hasPreviousPage startCursor endCursor }
+          edges {
+            __typename
+            cursor
+            node {
+              __typename
+              customerId
+              id
+              label
+              quantity
+            }
+          }
+        }
+      }
+    }
+  }
+}

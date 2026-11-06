@@ -1,0 +1,14 @@
+schema: ../generated/schema.graphqls
+documents: ../generated/operations/*.graphql
+generates:
+  src/generated.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typed-document-node
+    config:
+      strictScalars: true
+      scalars:
+        UUID: string
+        BigInt: string
+        JSON: './json#JSONValue'

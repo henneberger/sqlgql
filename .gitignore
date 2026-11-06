@@ -1,0 +1,47 @@
+# Local credentials and environment overrides
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# JavaScript dependencies, bundles, and caches
+node_modules/
+dist/
+.vite/
+.npm/
+*.tsbuildinfo
+
+# Go build/test output and local workspace overrides
+/bin/
+/build/
+/sqlgql
+/sqlgql-go
+/server
+*.exe
+*.test
+*.prof
+coverage/
+coverage.out
+coverage.*
+go.work
+go.work.sum
+
+# Task scratch files and logs
+.scratch/
+.tmp/
+*.log
+
+# OS and editor state
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Generated Go, GraphQL, TypeScript, persisted operations, and lockfiles
+# intentionally remain tracked so the demo builds without regeneration.
